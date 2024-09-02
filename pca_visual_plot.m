@@ -1,5 +1,5 @@
 function []=pca_visual_plot(model,score_axis,new_data,data_labeling_tr,data_labeling_new)
-    %%% receive pls with the required scores that need to be plotted
+    %%% receive pca with the required scores that need to be plotted
     figure
     Num_obs=size(model.T,1);
     subplot(3,1,1)
