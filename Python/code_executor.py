@@ -19,14 +19,14 @@ alpha = 0.95            # Confidence limit (=0.95)
 X_test=np.array([[0.9,0.1,0.2],[0.5 , 0.4 , 0.9]])
 scores_pca=np.array([1,2])
 # Model implementation as a Module
-'''
+
 pca_model=pca_m.pca_nipals(X,Num_com,alpha)
 
 x_hat,T_score,Hotelin_T2,SPE_X=pca_m.pca_evaluation(pca_model,X_test)
 print(f'x_hat={x_hat}\n',f'T_score={T_score}\n',f'Hotelin_T2={Hotelin_T2}\n',f'SPE_X={SPE_X}\n')
 
 pca_m.visual_plot(pca_model,scores_pca,X_test,color_map_data) # 
-'''
+
 #%% 
 # Model implementation as a Class
 MyPcaModel=pca_c()
