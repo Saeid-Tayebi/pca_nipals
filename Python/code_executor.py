@@ -36,7 +36,7 @@ x_hat,T_score,Hotelin_T2,SPE_X=MyPcaModel.evaluation(X_test)
 print(f'x_hat={x_hat}\n',f'T_score={T_score}\n',f'Hotelin_T2={Hotelin_T2}\n',f'SPE_X={SPE_X}\n')
 
 MyPcaModel.visual_plot(scores_pca,X_test,color_map_data,data_labeling=True)
-input('')
+input('Press Enter to close all plot windows')
 
 
 # %%

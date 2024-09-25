@@ -28,8 +28,10 @@ class MyPca:
         
         if Num_com is None: 
             Num_com=X.shape[1]
-        if Num_com>(X.shape[0]-1):
-            Num_com=X.shape[0]-1
+        if Num_com>(X.shape[0]-2):
+            Num_com=X.shape[0]-2
+        print(f'PCA:size of data ={X.shape[0]},num_com= {Num_com}')
+
         # Data Preparation
         X_orining = X
         Cx = np.mean(X, axis=0)
@@ -72,7 +74,7 @@ class MyPca:
 
             covered_var[:,i]=np.var(t1,axis=0,ddof=1)
             # SPE_X
-            SPE_x[:, i], SPE_lim_x[i], Rx[i] = self.SPE_calculation(T, P, X_0, alpha)
+            SPE_x[:, i], SPE_lim_x[i], Rx[i] = self.SPE_calculation(T, P, X_0, alpha,is_train=1)
 
             # Hotelling T2 Related Calculations
             tsquared[:, i], T2_lim[i], ellipse_radius[i] = self.T2_calculations(T[:, :i+1], i+1, Num_obs, alpha)
@@ -112,14 +114,14 @@ class MyPca:
 
         return x_hat_new,T_score,Hotelin_T2,SPE_X
 
-    def SPE_calculation(self,score, loading, Original_block, alpha):
+    def SPE_calculation(self,score, loading, Original_block, alpha,is_train=0):
         # Calculation of SPE and limits
         X_hat = score @ loading.T
         Error = Original_block - X_hat
         #Error.reshape(-1,loading.shape[1])
         spe = np.sum(Error**2, axis=1)
         spe_lim, Rsquare=None,None
-        if Original_block.shape[0]>1:
+        if is_train==1:
             m = np.mean(spe)
             v = np.var(spe,ddof=1)
             spe_lim = v / (2 * m) * chi2.ppf(alpha, 2 * m**2 / (v+1e-15))
