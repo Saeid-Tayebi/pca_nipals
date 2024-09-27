@@ -27,11 +27,9 @@ class MyPca:
     def train(self,X, Num_com=None, alpha=0.95, to_be_scaled=1):
         
         if Num_com is None: 
-            Num_com=X.shape[1]
-        if Num_com>(X.shape[0]-2):
-            Num_com=X.shape[0]-2
-        print(f'PCA:size of data ={X.shape[0]},num_com= {Num_com}')
-
+            self.Num_components_sugg(X)
+        if Num_com>(X.shape[0]-1):
+            Num_com=X.shape[0]-1
         # Data Preparation
         X_orining = X
         Cx = np.mean(X, axis=0)
@@ -97,7 +95,25 @@ class MyPca:
         self.Num_com=Num_com
         
         return self
+    def Num_components_sugg(self,Z,ploting=False):
+        '''
+        Z can be either X or Y
+        determines the number of components that describe the data quite good using the eigenvalue_greater_than_one_rule
+        '''
+        self.train(Z,A=Z.shape[1])
+        eig_val=self.covered_var
+        Num_com_sugg=np.sum(eig_val>1)
+        if ploting==True:
+            plt.figure()
+            plt.bar(range(1,eig_val.shape[1]+1),eig_val.reshape(-1),label='Covered Variance')
+            plt.xlabel('Components')
+            plt.ylabel('Variance Covered')
+            plt.plot([0,eig_val.shape[1]+1],[1,1],'k--',label='Threshold Line')
+            plt.legend()
+            plt.show()
+        # plot the eig_Val using barchart to show if suggested A is rational or not
 
+        return Num_com_sugg
     def evaluation(self,X_new): 
         """
         receive pca model and new observation and calculate its
@@ -149,8 +165,52 @@ class MyPca:
         Sx=self.x_scaling[1,:]
         X_new=(X_new * Sx) + Cx
         return X_new
-
-
+    
+    def MissEstimator(self,incom_data:np.ndarray=None,comple_data:np.ndarray=None):
+        '''
+        It receives the incomplete data with None in its missed columns, if the actual value is also given then the 
+        estimation accuracy will be given as well
+        '''
+        Estimated_block=np.zeros_like(incom_data)
+        Estimation_quality=np.zeros((incom_data.shape[0],1))
+        for i in range(incom_data.shape[0]):
+           x_new=incom_data[i,:].reshape(1,incom_data.shape[1])
+           #available_col = np.where(x_new != None)[0]
+           available_col = np.where(~np.isnan(x_new).any(axis=0))[0]
+           #no_avable_col=np.where(x_new == None)[0]
+           no_avable_col = np.where(np.isnan(x_new).any(axis=0))[0]
+           # scaling  x_new
+           C_scaling=self.x_scaling[0,available_col]
+           S_scaling=self.x_scaling[1,available_col]
+           X_new_scaled=(x_new[0,available_col]-C_scaling)/S_scaling.reshape(1,-1)
+           
+           P_new=self.P[available_col,:]
+           t_new=(X_new_scaled @ P_new) @ np.linalg.inv(P_new.T @ P_new)
+           
+           x_hat=t_new @ self.P.T
+           Estimated_block[i,:]=self.unscaler(x_hat).reshape(1,-1)
+           if comple_data is not None:
+               actual=comple_data[i,no_avable_col].reshape(1,-1)
+               estimated=Estimated_block[i,no_avable_col].reshape(1,-1)
+               Estimation_quality[i]=self.Single_obs_error_calculation(actual,estimated,self.Xtrain_normal[:,no_avable_col])
+        return Estimated_block,Estimation_quality
+    
+    def Single_obs_error_calculation(self,y_act,y_pre,Y_act=None):
+        '''
+        it receives actual and predicted_value and calculte the single prediction accuracy
+        it need Y (the entire Y block to make sure there is not bias caused by the magnitude of th ecolomns)
+        '''
+        if Y_act is None:
+            Y_act=y_act
+        pa=np.zeros_like(y_act)
+        for i in range(y_act.shape[1]):
+            base_value=np.min(Y_act[:,i])
+            scaled_Y=Y_act[:,i]-base_value
+            Y_avr=np.mean(scaled_Y)
+            error=np.abs(y_act[:,i]-y_pre[:,i])
+            pa[:,i]=1-(error/Y_avr)
+        Prediction_accuracy=np.mean(pa,axis=1)
+        return Prediction_accuracy 
     def visual_plot(self, score_axis=None, X_test=None, color_code_data=None, data_labeling=False, testing_labeling=False):
         # inner Functions
         def confidenceline(r1, r2, center):
