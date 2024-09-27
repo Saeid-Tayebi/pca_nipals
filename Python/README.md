@@ -1,3 +1,4 @@
+
 # PCA using NIPALS Algorithm (Python)
 
 ## Overview
@@ -6,15 +7,17 @@ This project implements Principal Component Analysis (PCA) using the NIPALS (Non
 
 ## Features
 
-- **Automatic Component Selection**: By default, the number of components is set to the number of data variables. Users can also manually specify the number of components.
+- **Automatic Component Selection**: By default, the number of components is determined based on the eigenvalue less than 1 rule. Users can also manually specify the number of components.
   
 - **Center-Scaling**: The function centers and scales the data by default to ensure better model performance. Users can skip this step by adjusting the `to_be_scaled` parameter.
 
-- **Alpha Parameter (Modeling Framework)**: An `alpha` parameter (ranging from 0 to 1) defines the confidence limit within which the model predictions are valid. A smaller `alpha` value provides a more constrained but accurate model, while a higher `alpha` broadens the model's scope at the potential cost of prediction accuracy.
+- **Alpha Parameter (Modeling Framework)**: An alpha parameter (ranging from 0 to 1) defines the confidence limit within which the model predictions are valid. A smaller alpha value provides a more constrained but accurate model, while a higher alpha broadens the model's scope at the potential cost of prediction accuracy.
 
 - **PCA Score Visualization**: An optional third input parameter (`color_map`) allows users to visualize data distribution in latent space, providing insight into possible clustering or variable-based patterns.
 
 - **Ease of Use**: Designed for simplicity, the functions are straightforward to implement, requiring minimal adjustments for customized analysis.
+
+- **Missing Value Estimation**: A new feature has been added to estimate missing values in new observations based on the trends extracted using PCA.
 
 ## Usage
 
@@ -80,11 +83,30 @@ print(f'x_hat={x_hat}\n', f'T_score={T_score}\n', f'Hotelin_T2={Hotelin_T2}\n', 
 MyPcaModel.visual_plot(scores_pca, X_test, color_map_data)
 ```
 
+#### Missing Value Estimation Example:
+
+```python
+# Generate the data
+correlated_data = generate_correlated_data(N, M, alpha)
+
+rows_for_test = 2
+X_tr = correlated_data[:-rows_for_test, :]
+X_tes = correlated_data[-rows_for_test:, :]
+X_tes_incomplete = X_tes.copy()
+columns_to_replace = [3, 1]
+for col in columns_to_replace:
+    X_tes_incomplete[:, col] = np.nan  # Replace with np.nan
+
+pca_model = pca_c()
+pca_model.train(X_tr, 3)
+
+estimated_block, estimation_accuracy = pca_model.MissEstimator(X_tes_incomplete, X_tes)
+print(estimation_accuracy)
+```
+
 ## Advantages
 
 - **Flexible Visualization**: The additional `color_map` parameter enhances the interpretability of PCA by enabling latent space visualization based on clustering or other data features.
 - **Class and Module Flexibility**: The project allows users to choose between a class-based or module-based implementation, providing flexibility for different coding preferences.
 - **Outlier Detection**: Both Hotelling's T² and SPE limits provide robust tools for identifying potential outliers in the dataset.
 - **Clear and Intuitive**: Designed to be straightforward for both novice and experienced users.
-
----

@@ -175,9 +175,7 @@ class MyPca:
         Estimation_quality=np.zeros((incom_data.shape[0],1))
         for i in range(incom_data.shape[0]):
            x_new=incom_data[i,:].reshape(1,incom_data.shape[1])
-           #available_col = np.where(x_new != None)[0]
            available_col = np.where(~np.isnan(x_new).any(axis=0))[0]
-           #no_avable_col=np.where(x_new == None)[0]
            no_avable_col = np.where(np.isnan(x_new).any(axis=0))[0]
            # scaling  x_new
            C_scaling=self.x_scaling[0,available_col]
